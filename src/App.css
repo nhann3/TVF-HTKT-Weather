@@ -15,3 +15,12 @@ html{width:100%;box-sizing:border-box}body{width:100%;min-width:0}header,main,.c
  .weather-choice{min-width:0;flex:1 1 90px;font-size:13px}.summary{gap:10px}.summary>div{font-size:12px}.summary strong{font-size:26px}.photo-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.photo-grid img{width:100%;height:110px}
  #refreshWeather,#gpsWeather,#exportExcel,#export{margin-bottom:8px;width:100%}
 }
+
+/* Package per contractor: desktop columns and mobile cards. */
+@media(min-width:601px){.contractor-row{grid-template-columns:minmax(0,1fr) minmax(0,1.4fr) minmax(0,1fr) minmax(0,1.8fr) auto}.contractor-head{grid-template-columns:minmax(0,1fr) minmax(0,1.4fr) minmax(0,1fr) minmax(0,1.8fr) 50px}}
+@media(max-width:600px){.contractor-table td:nth-child(2)::before{content:"Gói thầu"}.contractor-table td:nth-child(3)::before{content:"Thi công"}.contractor-table td:nth-child(4)::before{content:"Ghi chú"}#shareExcel{width:100%;margin-top:8px}}
+
+.contractor-choice{min-width:0}.contractor-choice input,.contractor-choice select{width:100%;max-width:100%}.contractor-choice input:not([hidden]){margin-top:8px}.contractor-choice input[hidden]{display:none}
+
+#cloudPanel button{margin:4px 0}#cloudPanel summary{cursor:pointer}#cloudPanel[hidden]{display:none}
+@media(max-width:600px){#cloudPanel button{width:100%}}
