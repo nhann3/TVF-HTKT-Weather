@@ -1,0 +1,10 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import vm from 'node:vm';
+for (const name of ['app.js','weather.js']) new vm.Script(fs.readFileSync(path.join('src',name),'utf8'),{filename:name});
+fs.rmSync('dist',{recursive:true,force:true});
+fs.mkdirSync('dist/assets',{recursive:true});
+fs.cpSync('public','dist',{recursive:true});
+fs.cpSync('src','dist/assets',{recursive:true});
+fs.writeFileSync('dist/index.html',fs.readFileSync('index.html','utf8').replaceAll('/src/','/assets/'));
+console.log('Build thành công: dist/');
