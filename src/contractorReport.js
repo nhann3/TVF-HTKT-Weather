@@ -6,7 +6,24 @@ const ContractorReport = (() => {
  const keys=['reportDate','manpowerScope','bchCount','workerCount','totalCount','chiefCount','chiefName','engineerCount','engineerName','qaCount','qaName','qsCount','qsName','workAreas','workContent','reportText'];
  const fold=s=>String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').replace(/Đ/g,'D').toLowerCase();
  function clean(r={}){if(!r||typeof r!=='object')r={};const out={};for(const k of numberFields){const v=r[k];if(v!==''&&v!==null&&v!==undefined){const n=Number(v);if(!Number.isInteger(n)||n<0||n>100000)throw Error('Quân số phải là số nguyên từ 0 đến 100000.');out[k]=n}}for(const k of textFields){if(r[k])out[k]=String(r[k]).trim()}return out}
- function parse(raw){if(typeof raw!=='string'||!raw.trim())throw Error('Dán báo cáo Nhà thầu trước khi tách.');if(raw.length>6000)throw Error('Báo cáo quá dài; tối đa 6000 ký tự.');const report={reportText:raw.trim(),manpowerScope:'Riêng gói thầu này'},warnings=[],work=[];const lines=raw.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+ // Recover boundaries when copy/paste collapses a report into one line.
+ function splitReport(raw){
+  const text=raw.normalize('NFC'), f=fold(text), cuts=new Set([0,text.length]);
+  const marker=/(?:^|\s)((?:[-*•]\s*|\d+\s*[/.]\s*)?(?:bch|ban chi huy|dtc|doi thi cong|cn|cong nhan|cbch|cht|chi huy truong|can bo chi huy|cbkt|ktht|can bo ky thuat(?:\s*\(cbkt\))?|(?:shop\s*[,/]?\s*)?(?:(?:can bo|cb)\s*)?qa\s*[/\-]?\s*qc|(?:(?:can bo|cb)\s*)?qs|tong\s*(?:quan so|nhan su|so nguoi)|(?:cong viec|noi dung)(?: thi cong)?(?: trong ngay)?|ngay\s*\d{1,2}\/\d{1,2}\/\d{4})\s*[:：])/g;
+  for(const m of f.matchAll(marker))cuts.add(m.index+m[0].length-m[1].length);
+  for(const m of text.matchAll(/\s+[-*•]\s+/g))cuts.add(m.index+m[0].search(/[-*•]/));
+  const indexes=[...cuts].sort((a,b)=>a-b),lines=[];
+  for(let i=0;i<indexes.length-1;i++)lines.push(...text.slice(indexes[i],indexes[i+1]).split(/\r?\n/).map(x=>x.trim()).filter(Boolean));
+  return lines;
+ }
+ function resolve(c={}){
+  const explicit=clean(c.report),source=String(c.note||explicit.reportText||'').trim();
+  if(!source)return explicit;
+  // Pure read: exporting old journals never writes back or changes history.
+  let derived={};try{derived=parse(source).report}catch(e){return explicit}
+  return {...derived,...explicit,reportText:source};
+ }
+ function parse(raw){if(typeof raw!=='string'||!raw.trim())throw Error('Dán báo cáo Nhà thầu trước khi tách.');if(raw.length>6000)throw Error('Báo cáo quá dài; tối đa 6000 ký tự.');const report={reportText:raw.trim(),manpowerScope:'Riêng gói thầu này'},warnings=[],work=[];const lines=splitReport(raw);
  for(const original of lines){const base=original.replace(/^[\s*•\-–]+/,'').trim(),line=/^\d{1,2}\/\d{1,2}\/\d{4}\b/.test(base)?base:base.replace(/^\d+\s*[\/.)]\s*/,'').trim(),f=fold(line);let m;
   if((m=line.match(/(?:ngày\s*)?(\d{1,2})\/(\d{1,2})\/(\d{4})/i))&&!report.reportDate){const y=+m[3],mo=+m[2],da=+m[1],dt=new Date(Date.UTC(y,mo-1,da));if(dt.getUTCFullYear()===y&&dt.getUTCMonth()===mo-1&&dt.getUTCDate()===da)report.reportDate=`${y}-${String(mo).padStart(2,'0')}-${String(da).padStart(2,'0')}`;else warnings.push('Ngày trong báo cáo không hợp lệ.');}
   if(/^(?:bch|ban chi huy)\s*[:：]/.test(f)){m=f.match(/[:：]\s*(\d{1,5})\b/);if(m)report.bchCount=+m[1];continue}
@@ -26,7 +43,7 @@ const ContractorReport = (() => {
    role=true;break;
   }}if(role)continue;
   // Ignore greetings and report headings, keep the remaining content as daily work.
-  if(/^(?:kinh gui|tran trong|xin cam on|bao cao(?:\s|$)|nha thau.*(?:bao cao|xin gui)|ngay\s*\d)/.test(f)||/^\d{1,2}\/\d{1,2}\/\d{4}\s*[:：.]?$/.test(f))continue;
+  if(/^(?:kinh gui|tran trong|xin cam on|bao cao (?:nhan su|quan so)|nha thau.*(?:bao cao|xin gui)|ngay\s*\d)/.test(f)||/^\d{1,2}\/\d{1,2}\/\d{4}\s*[:：.]?$/.test(f))continue;
   if(/^(?:cong viec|noi dung)(?: thi cong)?(?: trong ngay)?\s*[:：]/.test(f)){const content=line.slice(line.search(/[:：]/)+1).trim();if(content)work.push(content);continue;}
   if(line)work.push(line);
  }
@@ -39,5 +56,5 @@ const ContractorReport = (() => {
  return {report:clean(report),warnings};
  }
  function cells(report){const r=clean(report);return keys.map(k=>r[k]??'')}
- return {parse,clean,numberFields,textFields,headers,keys,cells};
+ return {parse,resolve,clean,numberFields,textFields,headers,keys,cells};
 })();
