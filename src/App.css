@@ -34,3 +34,11 @@ html{width:100%;box-sizing:border-box}body{width:100%;min-width:0}header,main,.c
 @media(max-width:600px){.report-fields{grid-template-columns:minmax(0,1fr)}.report-actions{display:grid;grid-template-columns:minmax(0,1fr)}.report-preview dl,.saved-contractor-report dl{grid-template-columns:minmax(0,1fr)}.report-preview dd,.saved-contractor-report dd{margin:0 0 8px}.journal-day>summary{gap:8px}.journal-day>summary strong{line-height:1.5}.contractor-report{padding:10px}.report-fields input,.report-fields select,.report-fields textarea,.report-raw{font-size:16px}}
 
 .weather-picker[hidden]{display:none}
+
+/* Multi-line notes remain readable in the form and saved records. */
+.contractor-row .contractor-note{min-height:160px;line-height:1.5;resize:vertical;white-space:pre-wrap;overflow-wrap:anywhere}
+.report-raw{min-height:240px;line-height:1.55;resize:vertical;white-space:pre-wrap}
+.report-fields textarea{min-height:190px;line-height:1.5;resize:vertical;white-space:pre-wrap}
+#note{min-height:180px;line-height:1.5;resize:vertical}
+.contractor-table td:nth-child(4),.journal-content>.muted{white-space:pre-wrap}
+@media(max-width:600px){.contractor-row .contractor-note{min-height:190px;font-size:16px}.report-raw{min-height:260px}}
