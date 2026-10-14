@@ -24,3 +24,13 @@ html{width:100%;box-sizing:border-box}body{width:100%;min-width:0}header,main,.c
 
 #cloudPanel button{margin:4px 0}#cloudPanel summary{cursor:pointer}#cloudPanel[hidden]{display:none}
 @media(max-width:600px){#cloudPanel button{width:100%}}
+/* Collapsible journals and contractor report fields. */
+.journal-day>summary{cursor:pointer;display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px 0;list-style:none}
+.journal-day>summary::-webkit-details-marker{display:none}.journal-day>summary strong{flex:1 1 100%}.journal-count{font-size:13px;color:#54747c}
+.day-show,.day-hide{color:#075b66;font-weight:600;font-size:14px}.day-hide{display:none}.journal-day[open]>summary .day-show{display:none}.journal-day[open]>summary .day-hide{display:inline}.journal-content{padding:8px 0}
+.contractor-report{grid-column:1/-1;width:100%;min-width:0;background:#f5f9fa;border:1px solid #dae5e7;border-radius:12px;padding:12px}
+.contractor-report>summary,.raw-report-view>summary{cursor:pointer;font-weight:600;color:#075b66;padding:5px}.report-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 12px}.report-fields label{min-width:0;margin:6px 0}.report-wide{grid-column:1/-1}.report-fields input,.report-fields select,.report-fields textarea{margin-top:7px;width:100%;min-width:0}
+.report-raw{margin-top:7px}.report-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.report-actions button{font-size:14px}.report-actions button:disabled{opacity:.5;cursor:default}.report-preview{font-size:14px;margin-top:8px}.report-preview dl,.saved-contractor-report dl{display:grid;grid-template-columns:minmax(110px,.7fr) minmax(0,2fr);gap:6px 12px}.report-preview dt,.saved-contractor-report dt{font-weight:600;color:#54747c}.report-preview dd,.saved-contractor-report dd{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}.report-warning{color:#8d5b13}.saved-contractor-report{padding:14px;border:1px solid #dae5e7;border-radius:12px;margin-top:12px;min-width:0}.saved-contractor-report h4{margin:0 0 8px}.raw-report-view p{white-space:pre-wrap;font-size:14px}
+@media(max-width:600px){.report-fields{grid-template-columns:minmax(0,1fr)}.report-actions{display:grid;grid-template-columns:minmax(0,1fr)}.report-preview dl,.saved-contractor-report dl{grid-template-columns:minmax(0,1fr)}.report-preview dd,.saved-contractor-report dd{margin:0 0 8px}.journal-day>summary{gap:8px}.journal-day>summary strong{line-height:1.5}.contractor-report{padding:10px}.report-fields input,.report-fields select,.report-fields textarea,.report-raw{font-size:16px}}
+
+.weather-picker[hidden]{display:none}
