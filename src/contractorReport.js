@@ -24,7 +24,7 @@ const ContractorReport = (() => {
   return {...derived,...explicit,reportText:source};
  }
  function parse(raw){if(typeof raw!=='string'||!raw.trim())throw Error('Dán báo cáo Nhà thầu trước khi tách.');if(raw.length>6000)throw Error('Báo cáo quá dài; tối đa 6000 ký tự.');const report={reportText:raw.trim(),manpowerScope:'Riêng gói thầu này'},warnings=[],work=[];const lines=splitReport(raw);
- for(const original of lines){const base=original.replace(/^[\s*•\-–]+/,'').trim(),line=/^\d{1,2}\/\d{1,2}\/\d{4}\b/.test(base)?base:base.replace(/^\d+\s*[\/.)]\s*/,'').trim(),f=fold(line);let m;
+ for(const original of lines){const base=original.replace(/^[\s*•\-–|]+/,'').replace(/[\s*|]+$/,'').trim(),line=/^\d{1,2}\/\d{1,2}\/\d{4}\b/.test(base)?base:base.replace(/^\d+\s*[\/.)]\s*/,'').trim(),f=fold(line);let m;
   if((m=line.match(/(?:ngày\s*)?(\d{1,2})\/(\d{1,2})\/(\d{4})/i))&&!report.reportDate){const y=+m[3],mo=+m[2],da=+m[1],dt=new Date(Date.UTC(y,mo-1,da));if(dt.getUTCFullYear()===y&&dt.getUTCMonth()===mo-1&&dt.getUTCDate()===da)report.reportDate=`${y}-${String(mo).padStart(2,'0')}-${String(da).padStart(2,'0')}`;else warnings.push('Ngày trong báo cáo không hợp lệ.');}
   // Contractor shorthand: quantity precedes the role, e.g. "1 CHT".
   const countFirst=f.match(/^(\d{1,5})\s*(?:nguoi\s+)?(bch|ban chi huy|can bo bch|cht|cbch|chi huy truong|cbkt|ktht|can bo ky thuat|(?:can bo\s+)?qa\s*[/\-]?\s*qc|(?:can bo\s+)?qs|nhan cong|cong nhan|nc|cn)(?=\s|[(:.;,]|$)/);
@@ -53,6 +53,7 @@ const ContractorReport = (() => {
    if(name){if(report[key+'Name']&&report[key+'Name']!==name)warnings.push('Có nhiều tên cho cùng chức danh; giữ tên đầu để bạn kiểm tra.');else report[key+'Name']=name;}
    role=true;break;
   }}if(role)continue;
+  if(/^(?:chua (?:ghi nhan|co|nhan duoc) bao cao|khong (?:co|ghi nhan|nhan duoc) bao cao|khong du (?:du lieu|thong tin)|khong ghi nhan)(?:\b|$)/.test(f)||/^[|\s:\-]+$/.test(line))continue;
   // Ignore greetings and report headings, keep the remaining content as daily work.
   if(/^(?:kinh gui|tran trong|xin cam on|bao cao (?:nhan su|quan so)|nha thau.*(?:bao cao|xin gui)|ngay\s*\d)/.test(f)||/^\d{1,2}\/\d{1,2}\/\d{4}\s*[:：.]?$/.test(f))continue;
   if(/^(?:cong viec|noi dung)(?: thi cong)?(?: trong ngay)?\s*[:：]/.test(f)){const content=line.slice(line.search(/[:：]/)+1).trim();if(content)work.push(content);continue;}
@@ -67,6 +68,6 @@ const ContractorReport = (() => {
  if(report.totalCount===undefined)warnings.push('Không có tổng quân số trong báo cáo; để trống, không tự suy đoán.');
  return {report:clean(report),warnings};
  }
- function cells(report){const r=clean(report);return keys.map(k=>r[k]??'')}
+ function cells(report){const r=clean(report);return keys.map(k=>r[k]??(k==='workContent'?'Không đủ dữ liệu':(numberFields.includes(k)||['bchName','engineerName','qaName','qsName','workAreas','reportDate','manpowerScope'].includes(k))?'Không ghi nhận':''))}
  return {parse,resolve,clean,numberFields,textFields,headers,keys,cells};
 })();
