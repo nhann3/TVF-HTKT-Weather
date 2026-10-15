@@ -23,7 +23,7 @@ const ContractorReport = (() => {
   let derived={};try{derived=parse(source).report}catch(e){return explicit}
   return {...derived,...explicit,reportText:source};
  }
- function parse(raw){if(typeof raw!=='string'||!raw.trim())throw Error('Dán báo cáo Nhà thầu trước khi tách.');if(raw.length>6000)throw Error('Báo cáo quá dài; tối đa 6000 ký tự.');const report={reportText:raw.trim(),manpowerScope:'Riêng gói thầu này'},warnings=[],work=[],equipment=[];const lines=splitReport(raw);
+ function parse(raw){if(typeof raw!=='string'||!raw.trim())throw Error('Dán báo cáo Nhà thầu trước khi tách.');if(raw.length>6000)throw Error('Báo cáo quá dài; tối đa 6000 ký tự.');const report={reportText:raw.trim(),manpowerScope:'Riêng gói thầu này'},warnings=[],work=[],equipment=[];const lines=splitReport(raw);let equipmentSection=false;
  for(const original of lines){const base=original.replace(/^[\s*•\-–|]+/,'').replace(/[\s*|]+$/,'').trim(),line=/^\d{1,2}\/\d{1,2}\/\d{4}\b/.test(base)?base:base.replace(/^\d+\s*[\/.)]\s*/,'').trim(),f=fold(line);let m;
   if((m=line.match(/(?:ngày\s*)?(\d{1,2})\/(\d{1,2})\/(\d{4})/i))&&!report.reportDate){const y=+m[3],mo=+m[2],da=+m[1],dt=new Date(Date.UTC(y,mo-1,da));if(dt.getUTCFullYear()===y&&dt.getUTCMonth()===mo-1&&dt.getUTCDate()===da)report.reportDate=`${y}-${String(mo).padStart(2,'0')}-${String(da).padStart(2,'0')}`;else warnings.push('Ngày trong báo cáo không hợp lệ.');}
   // Equipment stays as reported text: do not infer quantity, model or operating state.
@@ -31,11 +31,19 @@ const ContractorReport = (() => {
   const equipmentName='(?:may\\s+(?:dao|xuc|lu|ui|san|khoan|bom|phat dien|tron|dam|cat|han|nen khi|dong coc|ep coc|cau)|bua\\s+(?:rung|dong)|cau\\s+(?:banh xich|thap|banh lop)|xe\\s+(?:lu|dao|xuc|ui|cau|ben|tai|bon|van chuyen)|o to(?:\\s+(?:tai|ben|van chuyen))?)';
   const equipmentItem=new RegExp('^(?:\\d+\\s*(?:cai|chiec|bo)\\s+)?'+equipmentName+'(?=\\s|[:：,.;(]|$)|^\\d+\\s*'+equipmentName+'(?=\\s|[:：,.;(]|$)');
   if(equipmentHeading.test(f)){
+   equipmentSection=true;
    const content=line.slice(line.search(/[:：]/)+1).trim();
    if(content&&!/^(?:khong (?:co|ghi nhan)|chua (?:co|ghi nhan))\s*[.;]?$/.test(fold(content)))equipment.push(content);
    continue;
   }
-  if(/^(?:may moc(?:\s*[,/]?\s*thiet bi)?|may thi cong|thiet bi(?: thi cong)?|mmtb)\s*$/.test(f))continue;
+  if(/^(?:may moc(?:\s*[,/]?\s*thiet bi)?|may thi cong|thiet bi(?: thi cong)?|mmtb)\s*$/.test(f)){equipmentSection=true;continue;}
+  // A heading owns all following list lines, including names/models with no quantity.
+  // Known next sections end the equipment list before staffing/work processing.
+  if(equipmentSection){
+   const nextSection=/^(?:(?:cong viec|noi dung)(?: thi cong)?(?: trong ngay)?|nhan su|quan so(?: gom)?|ghi chu(?: hien truong)?|thoi tiet|khoi luong|ke hoach|bch|ban chi huy|cht|cbch|cbkt|ktht|qa\s*[/\-]?\s*qc|qs|dtc|doi thi cong|nc|cn|ns|sn|nhan cong|cong nhan|tong\s*(?:quan so|nhan su|so nguoi|nc|cn|ns|sn))\s*(?:[:：=]|$)/.test(f)||/^\d+\s*(?:cht|cbkt|bch|nhan cong|cong nhan|nc|cn|ns|sn)\b/.test(f);
+   if(nextSection)equipmentSection=false;
+   else {if(!/^(?:khong (?:co|ghi nhan)|chua (?:co|ghi nhan))\s*[.;]?$/.test(f))equipment.push(line);continue;}
+  }
   if(equipmentItem.test(f)){
    // A work sentence such as "Máy đào đang đào đất ..." belongs in daily work.
    const countReported=/^\d+\s*/.test(f)||/[:：=]\s*\d+/.test(f)||/\b\d+\s*(?:cai|chiec|bo|xe|may)\b/.test(f);
