@@ -9,7 +9,7 @@ const ContractorReport = (() => {
  // Recover boundaries when copy/paste collapses a report into one line.
  function splitReport(raw){
   const text=raw.normalize('NFC'), f=fold(text), cuts=new Set([0,text.length]);
-  const marker=/(?:^|\s)((?:[-*•]\s*|\d+\s*[/.]\s*)?(?:bch|ban chi huy|dtc|doi thi cong|cn|cong nhan|cbch|cht|chi huy truong|can bo chi huy|cbkt|ktht|can bo ky thuat(?:\s*\(cbkt\))?|(?:shop\s*[,/]?\s*)?(?:(?:can bo|cb)\s*)?qa\s*[/\-]?\s*qc|(?:(?:can bo|cb)\s*)?qs|tong\s*(?:quan so|nhan su|so nguoi)|(?:cong viec|noi dung)(?: thi cong)?(?: trong ngay)?|ngay\s*\d{1,2}\/\d{1,2}\/\d{4})\s*[:：])/g;
+  const marker=/(?:^|[\s.;,])((?:[-*•]\s*|\d+\s*[/.]\s*)?(?:bch|ban chi huy|dtc|doi thi cong|nc|cn|cong nhan|nhan cong|cbch|cht|chi huy truong|can bo chi huy|cbkt|ktht|can bo ky thuat(?:\s*\(cbkt\))?|(?:shop\s*[,/]?\s*)?(?:(?:can bo|cb)\s*)?qa\s*[/\-]?\s*qc|(?:(?:can bo|cb)\s*)?qs|tong\s*(?:quan so|nhan su|so nguoi)|(?:cong viec|noi dung)(?: thi cong)?(?: trong ngay)?|ngay\s*\d{1,2}\/\d{1,2}\/\d{4})\s*[:：])/g;
   for(const m of f.matchAll(marker))cuts.add(m.index+m[0].length-m[1].length);
   for(const m of text.matchAll(/\s+[-*•]\s+/g))cuts.add(m.index+m[0].search(/[-*•]/));
   const indexes=[...cuts].sort((a,b)=>a-b),lines=[];
@@ -27,7 +27,7 @@ const ContractorReport = (() => {
  for(const original of lines){const base=original.replace(/^[\s*•\-–]+/,'').trim(),line=/^\d{1,2}\/\d{1,2}\/\d{4}\b/.test(base)?base:base.replace(/^\d+\s*[\/.)]\s*/,'').trim(),f=fold(line);let m;
   if((m=line.match(/(?:ngày\s*)?(\d{1,2})\/(\d{1,2})\/(\d{4})/i))&&!report.reportDate){const y=+m[3],mo=+m[2],da=+m[1],dt=new Date(Date.UTC(y,mo-1,da));if(dt.getUTCFullYear()===y&&dt.getUTCMonth()===mo-1&&dt.getUTCDate()===da)report.reportDate=`${y}-${String(mo).padStart(2,'0')}-${String(da).padStart(2,'0')}`;else warnings.push('Ngày trong báo cáo không hợp lệ.');}
   // Contractor shorthand: quantity precedes the role, e.g. "1 CHT".
-  const countFirst=f.match(/^(\d{1,5})\s*(?:nguoi\s+)?(bch|ban chi huy|can bo bch|cht|cbch|chi huy truong|cbkt|ktht|can bo ky thuat|(?:can bo\s+)?qa\s*[/\-]?\s*qc|(?:can bo\s+)?qs|nhan cong|cong nhan|cn)(?=\s|[(:.;,]|$)/);
+  const countFirst=f.match(/^(\d{1,5})\s*(?:nguoi\s+)?(bch|ban chi huy|can bo bch|cht|cbch|chi huy truong|cbkt|ktht|can bo ky thuat|(?:can bo\s+)?qa\s*[/\-]?\s*qc|(?:can bo\s+)?qs|nhan cong|cong nhan|nc|cn)(?=\s|[(:.;,]|$)/);
   if(countFirst){
    const label=countFirst[2],key=/^(?:bch|ban chi huy|can bo bch)$/.test(label)?'bch':/^(?:cht|cbch|chi huy truong)$/.test(label)?'chief':/^(?:cbkt|ktht|can bo ky thuat)$/.test(label)?'engineer':/qa/.test(label)?'qa':/qs/.test(label)?'qs':'worker';
    const field=key+'Count',quantity=+countFirst[1];
@@ -38,7 +38,7 @@ const ContractorReport = (() => {
   }
   if(/^(?:quan so(?: gom)?|nhan su(?: gom)?)\s*[:：]?\s*$/.test(f))continue;
   if(/^(?:bch|ban chi huy|can bo bch)\s*[:：]/.test(f)){m=f.match(/[:：]\s*(\d{1,5})\b/);if(m)report.bchCount=+m[1];continue}
-  if(/^(?:dtc|doi thi cong)\s*[:：]/.test(f)||/^(?:cong nhan|nhan cong|cn)\s*[:：]/.test(f)){m=f.match(/[:：]\s*(\d{1,5})\b/);if(m)report.workerCount=+m[1];continue}
+  if(/^(?:dtc|doi thi cong)\s*[:：]/.test(f)||/^(?:cong nhan|nhan cong|nc|cn)\s*[:：]/.test(f)){m=f.match(/[:：]\s*(\d{1,5})\b/);if(m)report.workerCount=+m[1];continue}
   if(/^tong\s*(?:quan so|nhan su|so nguoi)\s*[:：]/.test(f)){m=f.match(/[:：]\s*(\d{1,5})\b/);if(m)report.totalCount=+m[1];continue}
   const roles=[
    ['chief',/^(?:(?:cbch|cht)(?:\s*\/\s*(?:cbch|cht))?|chi huy truong|can bo chi huy)\s*[:：]/],
