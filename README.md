@@ -1,58 +1,42 @@
-# TVF – Thời tiết công trường
+# TVF – Thời tiết công trường · R10.6 kiểm thử
 
-Mã nguồn Cloudflare Pages, xuất ngày 13/10/2026. Không cần React hoặc thư viện ngoài.
+## Tệp đã sửa
 
-## Sửa giao diện và chức năng
-- index.html: bố cục, nhãn và trường nhập.
-- src/App.css: màu, font, kích thước, giao diện điện thoại.
-- src/app.js: nhật ký, nhà thầu, ảnh, ảnh hưởng, tổng hợp, CSV.
-- src/weather.js: Open-Meteo, tọa độ, GPS, dự báo, bộ nhớ tạm.
-- public/tvf-logo.png: logo TVF.
-- scripts/build.mjs: tạo bản triển khai dist.
+| Tệp | Thay đổi |
+| --- | --- |
+| `index.html` | Gợi ý bàn phím và tự điền dành cho ô tài khoản trên điện thoại, nút khôi phục admin01, nhãn và phiên bản tài nguyên mới. |
+| `src/app.js` | Khởi tạo đăng nhập độc lập với IndexedDB. Nạp nhật ký cũ riêng để dữ liệu về muộn không ghi đè nhật ký vừa đồng bộ. |
+| `src/weatherCloud.js` | Dùng phiên trong bộ nhớ khi trình duyệt chặn lưu phiên. Gửi email khôi phục qua Supabase, xác minh token thuộc admin01 trước khi đổi mật khẩu và yêu cầu đăng nhập lại sau khi đổi. |
+| `README.md` | Hướng dẫn cấu hình, triển khai và nghiệm thu. |
 
-## GitHub → Cloudflare Pages (khuyên dùng)
-1. Tạo repository RIÊNG, ví dụ TVF-ThoiTiet-CongTruong.
-2. Tải toàn bộ NỘI DUNG source vào gốc repository. Không tải thêm lớp thư mục source. Tại gốc phải thấy index.html, package.json, package-lock.json, src, public, scripts.
-3. Cloudflare → Workers & Pages → Create application → Pages → Connect to Git (tên nút có thể thay đổi).
-4. Chọn repository mới; nhánh production main.
-5. Framework: None. Build command: npm run build. Build output: dist. Root directory: để trống.
-6. Đặt tên project, ví dụ tvf-thoi-tiet-nhann nếu còn trống. Cloudflare cấp https://TEN-PROJECT.pages.dev sau khi deploy thành công.
-7. Sửa code trên GitHub rồi Commit; Cloudflare tự build lại nếu đã bật Git integration.
+Các bản sao JavaScript/CSS ở thư mục gốc có sẵn trong ZIP ban đầu. Điểm chạy chính là `index.html` và `src/`. Bản build chuyển `src/` thành `dist/assets/`.
 
-## Chạy trên máy
-Cài Node.js; mở Terminal tại source:
+## Triển khai thử trên Cloudflare Pages
 
-```sh
-npm ci
-npm run build
-```
+1. Giải nén ZIP. Thư mục chứa `package.json` là thư mục gốc của mã nguồn.
+2. Với Git integration, dùng build command `npm run build` và output directory `dist`. Với Direct Upload, chạy `npm ci` và `npm run build`, rồi tải nội dung `dist/` lên Pages.
+3. Mở URL HTTPS và kiểm tra nhãn **Bản kiểm thử 06/11 · R10.6**. Dùng một URL thử cố định để đăng ký đường dẫn khôi phục.
+4. Mã nguồn đang trỏ đến dự án Supabase hiện hữu. Việc ghi nhật ký hay đổi mật khẩu trên URL thử vẫn có hiệu lực trên dự án đó. Để thử đổi mật khẩu hoặc ghi dữ liệu độc lập, dùng Supabase thử nghiệm có schema và quyền tương ứng, rồi đổi `base`, `key` và `adminEmail` trong `src/weatherCloud.js`. `key` ở frontend phải là khóa publishable.
+5. Trong Supabase **Authentication → URL Configuration**, thêm đúng URL HTTPS mở ứng dụng (ví dụ `https://ten-ban-thu.pages.dev/`) vào **Redirect URLs**. Giữ nguyên Site URL đang phục vụ các ứng dụng khác. Mẫu Reset Password cần dẫn qua liên kết xác nhận Supabase (`{{ .ConfirmationURL }}`), sau đó quay lại đúng URL ứng dụng với dữ liệu recovery trong fragment. Kiểm tra cấu hình gửi thư và giới hạn gửi nếu email không đến.
 
-Nếu có Python, xem bằng:
+[Supabase – Redirect URLs](https://supabase.com/docs/guides/auth/redirect-urls) · [Supabase – Password-based Auth](https://supabase.com/docs/guides/auth/passwords)
 
-```sh
-python -m http.server 4173 --directory dist
-```
+## Tự đặt lại mật khẩu admin01
 
-Mở http://localhost:4173. GPS trên điện thoại cần HTTPS.
+1. Mở bản triển khai HTTPS. Nếu đang đăng nhập, mở một cửa sổ riêng tư hoặc đăng xuất. Chọn **Quên mật khẩu admin01?**. Supabase gửi tới hộp thư đã đăng ký của tài khoản.
+2. Mở liên kết từ email mới nhất trong Safari hoặc Chrome. Kiểm tra đúng tên miền triển khai trước khi nhập mật khẩu. Nếu liên kết hết hạn, đã dùng, hoặc trang bị tải lại trước khi lưu, yêu cầu email mới.
+3. Tạo mật khẩu riêng bằng trình quản lý mật khẩu, nhập hai lần và chọn **Lưu mật khẩu mới**. Form yêu cầu ít nhất 8 ký tự và Supabase có thể áp dụng chính sách chặt hơn.
+4. Đăng nhập lại bằng `admin01` và mật khẩu mới. Nếu cùng tài khoản được dùng trong ứng dụng khác, dùng mật khẩu mới khi đăng nhập lại ở đó. Giữ mật khẩu và liên kết khôi phục trong trình quản lý mật khẩu hoặc hộp thư của bạn.
 
-## Direct Upload
-Tạo Pages project theo Direct Upload; giải nén dist và tải nội dung dist. index.html phải ở gốc. Không tải cả gói source + dist. Nếu muốn tự build từ GitHub, chọn Git integration ngay từ đầu; đây là hai cách triển khai khác nhau.
+Luồng đăng nhập gọi Supabase Auth, rồi kiểm tra `tvf_weather_members.can_write` trước khi đồng bộ. Token khôi phục được gỡ khỏi thanh địa chỉ, dùng trong bộ nhớ và kiểm tra với Supabase trước khi đổi mật khẩu. ZIP nguồn không có schema hay chính sách RLS để xác minh quyền trên máy chủ. Khi dùng dự án khác, cần cấu hình bảng `tvf_weather_members`, `tvf_weather_journal`, RPC `tvf_weather_save` và bucket `tvf-weather-photos` cùng chính sách truy cập tương ứng.
 
-## Dữ liệu và chức năng
-- Điểm mặc định 15.974, 108.252 là THAM KHẢO gần khu FPT Đà Nẵng; cần kiểm tra và chỉnh tọa độ đúng công trường hoặc dùng GPS tại hiện trường.
-- Múi giờ Asia/Ho_Chi_Minh. Hiển thị nguồn, thời điểm mô hình và thời điểm tải.
-- Dự báo theo giờ/7 ngày; bộ nhớ tạm 30 phút. Khi lỗi có thể hiển thị bản đã lưu dưới 24 giờ với nhãn rõ ràng.
-- Nhật ký: thời tiết thực tế, giờ mưa, ảnh hưởng theo buổi/cả ngày/khoảng giờ, từng nhà thầu, tối đa 3 ảnh đã thu nhỏ.
-- Nhật ký lưu IndexedDB trên trình duyệt, fallback localStorage. Chưa đồng bộ đám mây; một ngày một bản ghi, lưu lại cập nhật ngày đó.
-- Dữ liệu miền chatgpt.site KHÔNG tự chuyển sang pages.dev vì mỗi miền có bộ nhớ riêng. CSV không chứa ảnh.
-- Dự báo không tự xác nhận ngừng thi công.
-- Chưa có service worker/PWA ngoại tuyến hoàn chỉnh.
+## Kiểm thử điện thoại
 
-## Nguồn
-Open-Meteo: https://open-meteo.com/; dữ liệu CC BY 4.0, đã ghi nguồn trên giao diện.
-API miễn phí cho phi thương mại; vận hành thương mại cần gói phù hợp: https://open-meteo.com/en/pricing.
-AccuWeather chưa tích hợp. Không đưa khóa API bí mật vào JavaScript/public/GitHub; khi dùng API có khóa cần kết nối qua máy chủ.
+- Trên iPhone Safari và Android Chrome, mở cùng URL HTTPS. Thử đăng nhập bằng `admin01` và email thật của tài khoản. Thử cả nhập tay và tự điền. Mật khẩu sai phải báo lỗi và cho nhập lại.
+- Khi thành công, trạng thái phải báo đã đồng bộ. Tải lại, thử đồng bộ và đăng xuất. Khi trình duyệt từ chối ghi phiên, đăng nhập vẫn phải đồng bộ trong trang hiện tại và tải lại có thể yêu cầu đăng nhập lại.
+- Nếu từng có nhật ký cũ trên thiết bị, kiểm tra số ngày và tải bản sao từ mục **Chuyển nhật ký cũ trên thiết bị này**. Việc mở kho dữ liệu cũ không được chặn đăng nhập.
+- Với tài khoản ở dự án thử, gửi email khôi phục, thử hai ô không khớp, đặt mật khẩu thành công rồi kiểm tra mật khẩu mới đăng nhập được và mật khẩu cũ bị từ chối. Thử liên kết hết hạn hoặc sai tài khoản. Trên dự án dùng chung, lên lịch đổi mật khẩu trước khi thực hiện.
+- Nếu xác thực qua nhưng đồng bộ lỗi, đối chiếu trạng thái hiển thị, quyền thành viên và log Supabase. Ghi lại trình duyệt, phiên bản hệ điều hành và thông báo lỗi, bỏ thông tin đăng nhập và token.
+- Kiểm tra thêm dự báo, GPS, xem nhật ký, lưu bản ghi thử kèm ảnh và xuất CSV trên dự án thử.
 
-## Kiểm tra sau deploy
-Kiểm tra tọa độ, tải dự báo, nhập và sửa nhật ký, thêm ảnh, tải lại để kiểm tra dữ liệu còn, mức ảnh hưởng theo buổi/cả ngày/theo giờ, xuất CSV, quyền GPS và lỗi mất mạng.
-Đã kiểm tra cú pháp, build, đường dẫn tài nguyên; cần kiểm thử điện thoại sau khi triển khai Cloudflare.
+Đã chạy `npm ci`, `npm run build` và kiểm thử mô phỏng đăng nhập khi localStorage bị chặn, gửi yêu cầu khôi phục, đổi mật khẩu đúng tài khoản và từ chối token của tài khoản khác. Cần chạy checklist trên thiết bị thật sau khi triển khai.
