@@ -1,6 +1,6 @@
 // TVF Thời tiết · R11 service worker: lets the app open without signal on site.
 // Network-first for the app shell; Supabase, login and Open-Meteo requests are never touched.
-const CACHE='tvf-weather-shell-r11';
+const CACHE='tvf-weather-shell-r11-1';
 const SHELL=['/','/index.html','/manifest.webmanifest','/tvf-logo.png','/icon-192.png','/favicon-32.png'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('tvf-weather-shell-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));

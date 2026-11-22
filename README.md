@@ -1,4 +1,6 @@
-# TVF – Thời tiết công trường · R11 (22/11/2026)
+# TVF – Thời tiết công trường · R11.1 (22/11/2026)
+
+R11.1: thanh tab cố định ở đáy trên iPhone (chặn tự phóng to khi chạm ô nhập, chặn trượt ngang); nhật ký tô đỏ ngày không thi công được (Tạm dừng cả ngày, Nghỉ thi công do thời tiết), tô cam ngày bị gián đoạn.
 
 ## Thay đổi
 
